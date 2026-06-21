@@ -1,0 +1,74 @@
+services:
+  datastores-tailscale-sidecar:
+    image: tailscale/tailscale:latest
+    hostname: data-stores
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY}
+      - TS_EXTRA_ARGS=--advertise-tags=tag:datastores-container
+      - TS_STATE_DIR=/var/lib/tailscale
+    volumes:
+      - tailscale_data:/var/lib/tailscale
+      - /dev/net/tun:/dev/net/tun
+    networks:
+      - localhost
+    cap_add:
+      - net_admin
+      - sys_module
+    healthcheck:
+      test: ["CMD", "tailscale", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    network_mode: service:datastores-tailscale-sidecar
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    depends_on:
+      - datastores-tailscale-sidecar
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:latest
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+    network_mode: service:datastores-tailscale-sidecar
+    volumes:
+      - mysql_data:/var/lib/mysql
+    depends_on:
+      - datastores-tailscale-sidecar
+    restart: unless-stopped
+
+  redis:
+    image: redis:7
+    container_name: redis
+    network_mode: service:datastores-tailscale-sidecar
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - redis_data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - ./redis/.users.acl:/data/users.acl
+    depends_on:
+      - datastores-tailscale-sidecar
+    restart: unless-stopped
+
+networks:
+  localhost:
+    name: localbridge
+    external: true
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+  postgres_data:
+    driver: local
+  tailscale_data:
+    driver: local

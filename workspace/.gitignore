@@ -1,0 +1,4 @@
+.ssh/*
+.config/*
+
+.env

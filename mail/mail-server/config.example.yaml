@@ -1,0 +1,11 @@
+account:
+  label: "college"
+  host: "imap.gmail.com"
+  port: 993
+  username: "email@gmail.com"
+  folders:
+    - "INBOX"
+  allowed_senders: []   # e.g. ["@college.edu", "noreply@hackerearth.com"]
+
+mail_ttl_days: 14
+poll_interval_seconds: 3600

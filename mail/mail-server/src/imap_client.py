@@ -60,7 +60,7 @@ class IMAPPoller:
         mails: List[MailRecord] = []
         try:
             with imapclient.IMAPClient(
-                self.acct.host, port=self.acct.port, ssl=True
+                self.acct.host, port=self.acct.port, ssl=True, timeout=30
             ) as client:
                 client.login(self.acct.username, self.password)
 
@@ -70,6 +70,7 @@ class IMAPPoller:
                     if not uids:
                         continue
 
+                    uids = uids[-100:]
                     fetched = client.fetch(uids, ["RFC822"])
                     for uid, data in fetched.items():
                         try:

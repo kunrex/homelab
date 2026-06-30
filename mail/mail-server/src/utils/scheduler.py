@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 def init_scheduler(scheduler: AsyncIOScheduler, poll_fn, cleanup_fn, poll_interval_seconds: int):
@@ -8,6 +10,7 @@ def init_scheduler(scheduler: AsyncIOScheduler, poll_fn, cleanup_fn, poll_interv
         id="imap_poll",
         max_instances=1,
         coalesce=True,
+        next_run_time=datetime.now(timezone.utc),
     )
     scheduler.add_job(
         cleanup_fn,
